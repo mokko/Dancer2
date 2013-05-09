@@ -7,9 +7,9 @@ perl:
     - "5.10"
 
 install:
-#Moo fails to install without Class::Method::Modifiers since 2012/10/19 
-    - cpanm --no-skip-satisfied Class::Method::Modifiers
+    - perl -e 'print join("\n",@INC)."\n"'
     - dzil authordeps --missing | cpanm  --no-skip-satisfied || { cat ~/.cpanm/build.log ; false ; }
+    - perl -e 'print join("\n",@INC)."\n"'
     - dzil listdeps --author --missing | cpanm --no-skip-satisfied || { cat ~/.cpanm/build.log ; false ; }
 script:
     - dzil test --author --release
