@@ -54,16 +54,4 @@ subtest 'plugin reserved keywords' => sub {
     }
 };
 
-subtest 'plugin version' => sub {
-
-    package Foo;
-    our $VERSION = '1.034';
-    use Dancer2;
-    use Dancer2::Plugin;
-
-    eval {register_plugin};
-    Test::More::like $@, qr{Foo 1.034 does not support Dancer2 2};
-};
-
-
 done_testing;

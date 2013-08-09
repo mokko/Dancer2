@@ -26,15 +26,30 @@ requires 'serialize';
 requires 'deserialize';
 requires 'loaded';
 
+has error => (
+    is        => 'rw',
+    isa       => Str,
+    predicate => 1,
+);
+
 around serialize => sub {
-    my ($orig, $self) = (shift, shift);
-    my ($data) = @_;
+    my ( $orig, $self, @data ) = @_;
+    $self->execute_hook( 'engine.serializer.before', @data );
+    my $serialized = eval {$self->$orig(@data);};
 
-    $self->execute_hook('engine.serializer.before', $data);
-    my $serialized = $self->$orig($data);
-    $self->execute_hook('engine.serializer.after', $serialized);
-
+    if ($@) {
+        $self->error($@);
+    }else{
+        $self->execute_hook( 'engine.serializer.after', $serialized );
+    }
     return $serialized;
+};
+
+around deserialize => sub {
+    my ( $orig, $self, @data ) = @_;
+    my $data = eval { $self->$orig(@data); };
+    $self->error($@) if $@;
+    return $data;
 };
 
 # attribute vs method?
@@ -42,11 +57,11 @@ sub content_type {'text/plain'}
 
 # most serializer don't have to overload this one
 sub support_content_type {
-    my ($self, $ct) = @_;
+    my ( $self, $ct ) = @_;
     return unless $ct;
 
     my @toks = split ';', $ct;
-    $ct = lc($toks[0]);
+    $ct = lc( $toks[0] );
     return $ct eq $self->content_type;
 }
 
